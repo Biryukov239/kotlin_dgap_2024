@@ -43,18 +43,19 @@ fun updateMaps(world: World, name: String, measurement: Double) {
         return
     }
     for (key in world.cityMap.keys) {
+        val city = world.cityMap.getValue(key)
         if (name == key) {
-            world.cityMap[key]!!.namesCount += 1
+            city.namesCount += 1
             world.cityMap[key] = City(
-                BigDecimal((world.cityMap[key]!!.measureMean * (world.cityMap[key]!!.namesCount - 1) + measurement) /
-                        world.cityMap[key]!!.namesCount).
+                BigDecimal((city.measureMean * (city.namesCount - 1) + measurement) /
+                        city.namesCount).
                 setScale(
                     4,
                     RoundingMode.HALF_EVEN
                 ).toDouble(),
-                min(world.cityMap[key]!!.measureMin, measurement),
-                max(world.cityMap[key]!!.measureMax, measurement),
-                world.cityMap[key]!!.namesCount
+                min(city.measureMin, measurement),
+                max(city.measureMax, measurement),
+                city.namesCount
             )
             break
         }
