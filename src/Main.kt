@@ -5,13 +5,15 @@ import java.math.RoundingMode
 import kotlin.math.max
 import kotlin.math.min
 
-class City(val name: String, val measurement: Double)
+class City(
+    var measureMean: Double,
+    var measureMin: Double,
+    var measureMax: Double,
+    var namesCount: Int
+)
 
 class World(
-    var measureMean: MutableMap<String, Double>,
-    var measureMax: MutableMap<String, Double>,
-    var measureMin: MutableMap<String, Double>,
-    var namesCount: MutableMap<String, Int>
+    var cityMap: MutableMap<String, City>
 )
 
 fun writeToFile(world: World) {
@@ -19,8 +21,8 @@ fun writeToFile(world: World) {
     try {
         val file = File(fileName)
         val writer = FileWriter(file)
-        for (key in world.measureMean.keys) {
-            val line = "$key=${world.measureMin[key]}/${world.measureMean[key]}/${world.measureMax[key]}\n"
+        for (key in world.cityMap.keys) {
+            val line = "$key=${world.cityMap[key]!!.measureMin}/${world.cityMap[key]!!.measureMean}/${world.cityMap[key]!!.measureMax}\n"
             writer.write(line)
         }
         writer.close()
@@ -29,26 +31,30 @@ fun writeToFile(world: World) {
     }
 }
 
-fun updateMaps(world: World, city: City) {
-    if (world.namesCount[city.name] == null) {
-        world.namesCount[city.name] = 1
-    }
-    if (world.measureMean[city.name] == null) {
-        world.measureMean[city.name] = city.measurement
-        world.measureMin[city.name] = city.measurement
-        world.measureMax[city.name] = city.measurement
+fun updateMaps(world: World, name: String, measurement: Double) {
+    if (world.cityMap[name] == null) {
+        world.cityMap[name] = City(
+            measurement,
+            measurement,
+            measurement,
+            1
+        )
         return
     }
-    for (key in world.measureMean.keys) {
-        if (city.name == key) {
-            world.namesCount[key] = world.namesCount[key]!! + 1
-            world.measureMin[key] = min(world.measureMin[key]!!, city.measurement)
-            world.measureMax[key] = max(world.measureMax[key]!!, city.measurement)
-            world.measureMean[key] =
-                BigDecimal((world.measureMean[key]!! * (world.namesCount[key]!! - 1) + city.measurement) / world.namesCount[key]!!).setScale(
+    for (key in world.cityMap.keys) {
+        if (name == key) {
+            world.cityMap[key]!!.namesCount += 1
+            world.cityMap[key] = City(
+                BigDecimal((world.cityMap[key]!!.measureMean * (world.cityMap[key]!!.namesCount - 1) + measurement) /
+                        world.cityMap[key]!!.namesCount).
+                setScale(
                     4,
                     RoundingMode.HALF_EVEN
-                ).toDouble()
+                ).toDouble(),
+                min(world.cityMap[key]!!.measureMin, measurement),
+                max(world.cityMap[key]!!.measureMax, measurement),
+                world.cityMap[key]!!.namesCount
+            )
             break
         }
     }
@@ -61,11 +67,9 @@ fun readFromFile(world: World) {
         file.reader().forEachLine {
             for (i in it.indices) {
                 if (it[i] == ';') {
-                    val city = City(
-                        it.substring(0, i),
-                        it.substring(i + 1, it.length).toDouble()
-                    )
-                    updateMaps(world, city)
+                    val measurement = it.substring(i + 1, it.length).toDouble()
+                    val name = it.substring(0, i)
+                    updateMaps(world, name, measurement)
                 }
             }
         }
@@ -75,7 +79,7 @@ fun readFromFile(world: World) {
 }
 
 fun main() {
-    val world = World(mutableMapOf(), mutableMapOf(), mutableMapOf(), mutableMapOf())
+    val world = World(mutableMapOf())
     readFromFile(world)
     writeToFile(world)
 }
