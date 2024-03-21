@@ -47,9 +47,10 @@ fun updateMaps(world: World, name: String, measurement: Double) {
         if (name == key) {
             city.namesCount += 1
             world.cityMap[key] = City(
-                BigDecimal((city.measureMean * (city.namesCount - 1) + measurement) /
-                        city.namesCount).
-                setScale(
+                BigDecimal(
+                    (city.measureMean * (city.namesCount - 1) + measurement) /
+                            city.namesCount
+                ).setScale(
                     4,
                     RoundingMode.HALF_EVEN
                 ).toDouble(),
