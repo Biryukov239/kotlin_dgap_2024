@@ -22,8 +22,8 @@ fun writeToFile(world: World) {
         val file = File(fileName)
         val writer = FileWriter(file)
         for (key in world.cityMap.keys) {
-            val city = world.cityMap[key]
-            val line = "$key=${city!!.measureMin}/${city.measureMean}/${city.measureMax}\n"
+            val city = world.cityMap.getValue(key)
+            val line = "$key=${city.measureMin}/${city.measureMean}/${city.measureMax}\n"
             writer.write(line)
         }
         writer.close()
